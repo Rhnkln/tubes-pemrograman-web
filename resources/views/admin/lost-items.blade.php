@@ -1,7 +1,8 @@
 @extends('layouts.app')
-@section('title', 'Detail Kehilangan')
+@section('title', 'Daftar Barang Hilang')
 
 @section('content')
+@foreach($items as $item)
 <div class="card card-lg detail-layout">
 
     <!-- ===================== -->
@@ -9,9 +10,7 @@
     <!-- ===================== -->
     <div class="detail-left">
         <img
-            src="{{ $item->foto_barang
-                    ? asset('storage/' . $item->foto_barang)
-                    : 'https://via.placeholder.com/400x300' }}"
+            src="{{ $item->foto_barang ? asset('storage/' . $item->foto_barang) : 'https://via.placeholder.com/400x300' }}"
             class="detail-image"
             alt="Foto Barang"
         >
@@ -51,14 +50,6 @@
             </span>
         </div>
 
-        <!-- Tanggal Hilang -->
-        <div class="card-field">
-            <span class="field-label">Tanggal Hilang</span>
-            <span class="field-value">
-                {{ $item->tanggal_hilang->format('d M Y') }}
-            </span>
-        </div>
-
         <!-- Status -->
         <div class="card-field">
             <span class="field-label">Status</span>
@@ -67,97 +58,19 @@
             </span>
         </div>
 
-        <!-- Pelapor -->
-        <div class="card-field">
-            <span class="field-label">Pelapor</span>
-            <span class="field-value">
-                {{ $item->user->name ?? '-' }}
-            </span>
+        <!-- Lihat Detail -->
+        <div class="card-actions mt-2">
+            <a href="{{ route('admin.showLostItem', $item->id) }}" class="btn btn-primary btn-sm">
+                Lihat Detail
+            </a>
         </div>
 
-        <!-- ===================== -->
-        <!-- Kontak Pelapor (WhatsApp) -->
-        <!-- ===================== -->
-        @if($item->user && !empty($item->user->phone))
-            @php
-                // Normalisasi nomor telepon ke format WhatsApp (62)
-                $rawNumber = $item->user->phone;
-                $number = preg_replace('/[^0-9]/', '', $rawNumber);
-
-                if (substr($number, 0, 1) === '0') {
-                    $number = '62' . substr($number, 1);
-                }
-            @endphp
-
-            <div class="card-field">
-                <span class="field-label">Kontak Pelapor</span>
-                <div style="margin-top: 0.5rem">
-                    <a
-                        href="https://wa.me/{{ $number }}"
-                        target="_blank"
-                        class="btn btn-success btn-sm"
-                    >
-                        WhatsApp
-                    </a>
-                </div>
-            </div>
-        @endif
-
-        <!-- ===================== -->
-        <!-- Aksi Pemilik Laporan -->
-        <!-- ===================== -->
-        @if($item->user_id === auth()->id())
-            <div class="card-actions mt-3">
-
-                <!-- Form Update Status -->
-                <form
-                    action="{{ route('lost-items.updateStatus', $item->id) }}"
-                    method="POST"
-                >
-                    @csrf
-                    @method('PATCH')
-
-                    <div class="mb-2">
-                        <label for="status" class="form-label">
-                            Ubah Status:
-                        </label>
-
-                        <select name="status" id="status" class="form-select">
-                            <option value="hilang" {{ $item->status == 'hilang' ? 'selected' : '' }}>
-                                Hilang
-                            </option>
-                            <option value="ditemukan" {{ $item->status == 'ditemukan' ? 'selected' : '' }}>
-                                Ditemukan
-                            </option>
-                            <option value="selesai" {{ $item->status == 'selesai' ? 'selected' : '' }}>
-                                Selesai
-                            </option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">
-                        Update Status
-                    </button>
-                </form>
-
-                <!-- Tombol Hapus Laporan -->
-                <form
-                    action="{{ route('lost-items.destroy', $item) }}"
-                    method="POST"
-                    class="mt-2"
-                    onsubmit="return confirm('Yakin ingin menghapus laporan ini?')"
-                >
-                    @csrf
-                    @method('DELETE')
-
-                    <button type="submit" class="btn btn-danger">
-                        Hapus
-                    </button>
-                </form>
-
-            </div>
-        @endif
-
     </div>
+</div>
+@endforeach
+
+<!-- Pagination -->
+<div class="mt-4">
+    {{ $items->links() }}
 </div>
 @endsection
